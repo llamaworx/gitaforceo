@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Om symbol circle background -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,54m-24,0a24,24 0,1 1,48 0a24,24 0,1 1,-48 0"/>
+    <!-- Simplified Gita book icon -->
+    <path
+        android:fillColor="#F59E27"
+        android:pathData="M44,42 L44,66 L54,62 L64,66 L64,42 L54,46 Z"/>
+    <path
+        android:fillColor="#CF8D20"
+        android:pathData="M54,46 L54,62"/>
+</vector>
