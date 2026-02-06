@@ -28,6 +28,10 @@
 		A10000019 /* Color+Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000019; };
 		A10000020 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000020; };
 		A10000021 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000021; };
+		A10000022 /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000022; };
+		A10000023 /* ConversationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000023; };
+		A10000024 /* AdvisorChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000024; };
+		A10000025 /* ConversationHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000025; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +57,10 @@
 		A20000019 /* Color+Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Theme.swift"; sourceTree = "<group>"; };
 		A20000020 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 		A20000021 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A20000022 /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
+		A20000023 /* ConversationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationService.swift; sourceTree = "<group>"; };
+		A20000024 /* AdvisorChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvisorChatView.swift; sourceTree = "<group>"; };
+		A20000025 /* ConversationHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationHistoryView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -94,6 +102,7 @@
 				A20000004 /* Chapter.swift */,
 				A20000005 /* Verse.swift */,
 				A20000006 /* Theme.swift */,
+				A20000022 /* ChatMessage.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -110,6 +119,8 @@
 				A20000014 /* OnboardingView.swift */,
 				A20000020 /* SearchView.swift */,
 				A20000021 /* SettingsView.swift */,
+				A20000024 /* AdvisorChatView.swift */,
+				A20000025 /* ConversationHistoryView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -128,6 +139,7 @@
 			children = (
 				A20000017 /* AudioService.swift */,
 				A20000018 /* BookmarkService.swift */,
+				A20000023 /* ConversationService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -244,6 +256,10 @@
 				A10000019 /* Color+Theme.swift in Sources */,
 				A10000020 /* SearchView.swift in Sources */,
 				A10000021 /* SettingsView.swift in Sources */,
+				A10000022 /* ChatMessage.swift in Sources */,
+				A10000023 /* ConversationService.swift in Sources */,
+				A10000024 /* AdvisorChatView.swift in Sources */,
+				A10000025 /* ConversationHistoryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

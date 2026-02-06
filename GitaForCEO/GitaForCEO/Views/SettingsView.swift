@@ -3,10 +3,13 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject var viewModel: GitaViewModel
     @EnvironmentObject var audioPlayerVM: AudioPlayerViewModel
+    @EnvironmentObject var conversationService: ConversationService
     @AppStorage("hapticFeedback") private var hapticFeedback = true
     @AppStorage("autoPlayAudio") private var autoPlayAudio = false
     @AppStorage("dailyReminder") private var dailyReminder = true
     @AppStorage("readSanskritFirst") private var readSanskritFirst = false
+    @AppStorage("claudeAPIKey") private var apiKey = ""
+    @State private var showAPIKeyField = false
 
     var body: some View {
         List {
@@ -86,6 +89,65 @@ struct SettingsView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
+                }
+            }
+
+            // AI Advisor
+            Section("Gita Advisor (AI)") {
+                if apiKey.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.warmAmber)
+                            Text("API Key Required for Full Advisor")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                        }
+
+                        Text("Without an API key, the Advisor provides offline wisdom from curated verses. With a Claude API key, you get personalised, conversational guidance.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Button("Add API Key") {
+                            showAPIKeyField = true
+                        }
+                        .font(.caption)
+                        .foregroundStyle(.saffron)
+                    }
+                } else {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.forestGreen)
+                        Text("API Key Configured")
+                            .font(.subheadline)
+                        Spacer()
+                        Button("Change") {
+                            showAPIKeyField = true
+                        }
+                        .font(.caption)
+                        .foregroundStyle(.saffron)
+                    }
+                }
+
+                if showAPIKeyField {
+                    VStack(alignment: .leading, spacing: 6) {
+                        SecureField("sk-ant-...", text: $apiKey)
+                            .font(.system(.caption, design: .monospaced))
+                            .textFieldStyle(.roundedBorder)
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.never)
+
+                        Text("Your key is stored locally on your device only.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                HStack {
+                    Text("Conversations Saved")
+                    Spacer()
+                    Text("\(conversationService.conversations.count)")
+                        .foregroundStyle(.secondary)
                 }
             }
 
