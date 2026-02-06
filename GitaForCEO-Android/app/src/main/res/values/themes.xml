@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.GitaForCEO" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/deep_blue</item>
+        <item name="android:navigationBarColor">@color/white</item>
+    </style>
+
+    <color name="saffron">#F59E27</color>
+    <color name="deep_blue">#1F3369</color>
+    <color name="sacred_gold">#CFAD40</color>
+    <color name="lotus_rose">#D16B78</color>
+    <color name="forest_green">#387A59</color>
+    <color name="warm_amber">#DE8530</color>
+    <color name="parchment">#FAF5E8</color>
+    <color name="white">#FFFFFF</color>
+</resources>
