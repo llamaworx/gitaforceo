@@ -310,7 +310,7 @@ private fun StatCard(
 
 @Composable
 private fun BookmarkedSection(viewModel: GitaViewModel, navController: NavController) {
-    val bookmarked = viewModel.bookmarkService.getBookmarkedVerses()
+    val bookmarked = viewModel.bookmarkService.bookmarkedVerses
     if (bookmarked.isNotEmpty()) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             Text("Your Bookmarks", style = MaterialTheme.typography.titleMedium)

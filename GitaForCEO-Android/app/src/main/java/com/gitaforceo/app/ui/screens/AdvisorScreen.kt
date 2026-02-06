@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,9 +49,11 @@ fun AdvisorScreen(viewModel: GitaViewModel, navController: NavController) {
             )
         }
     ) { padding ->
-        val conversation = conversationService.currentConversation
+        val conversation by conversationService.currentConversation.collectAsState()
+        val isLoading by conversationService.isLoading.collectAsState()
 
-        if (conversation == null) {
+        val currentConv = conversation
+        if (currentConv == null) {
             // Welcome view
             WelcomeView(
                 modifier = Modifier.padding(padding),
@@ -65,7 +68,7 @@ fun AdvisorScreen(viewModel: GitaViewModel, navController: NavController) {
         } else {
             // Chat view
             Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-                val messages = conversation.messages.filter { it.role != ChatMessage.Role.SYSTEM }
+                val messages = currentConv.messages.filter { it.role != ChatMessage.Role.SYSTEM }
                 val listState = rememberLazyListState()
 
                 LaunchedEffect(messages.size) {
@@ -83,7 +86,7 @@ fun AdvisorScreen(viewModel: GitaViewModel, navController: NavController) {
                     items(messages) { message ->
                         MessageBubble(message = message, navController = navController)
                     }
-                    if (conversationService.isLoading) {
+                    if (isLoading) {
                         item { TypingIndicator() }
                     }
                 }

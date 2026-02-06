@@ -117,7 +117,7 @@ fun SettingsScreen(viewModel: GitaViewModel, navController: NavController) {
                 Row {
                     Text("Conversations Saved", style = MaterialTheme.typography.bodySmall)
                     Spacer(modifier = Modifier.weight(1f))
-                    Text("${viewModel.conversationService.conversations.size}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${viewModel.conversationService.conversations.value.size}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 

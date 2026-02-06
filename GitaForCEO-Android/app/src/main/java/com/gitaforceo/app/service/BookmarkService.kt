@@ -78,6 +78,9 @@ class BookmarkService(context: Context) {
         return _notes.value[verseId] ?: ""
     }
 
+    val bookmarkedCount: Int
+        get() = _bookmarkedVerseIds.value.size
+
     // ---- Progress ----
 
     val readCount: Int
