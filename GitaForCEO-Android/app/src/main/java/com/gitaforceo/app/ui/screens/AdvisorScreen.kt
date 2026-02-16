@@ -1,5 +1,12 @@
 package com.gitaforceo.app.ui.screens
 
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.speech.RecognizerIntent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -29,19 +37,91 @@ import com.gitaforceo.app.ui.navigation.Screen
 import com.gitaforceo.app.ui.theme.*
 import com.gitaforceo.app.viewmodel.GitaViewModel
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdvisorScreen(viewModel: GitaViewModel, navController: NavController) {
     val conversationService = viewModel.conversationService
+    val audioService = viewModel.audioService
     var inputText by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    // Auto-speak toggle
+    var autoSpeak by remember { mutableStateOf(true) }
+
+    // Track message count to detect new advisor responses
+    val conversation by conversationService.currentConversation.collectAsState()
+    val isLoading by conversationService.isLoading.collectAsState()
+    val isPlaying by audioService.isPlaying.collectAsState()
+    var lastMessageCount by remember { mutableIntStateOf(0) }
+
+    // Auto-speak when a new advisor message arrives
+    LaunchedEffect(conversation?.messages?.size, isLoading) {
+        val conv = conversation ?: return@LaunchedEffect
+        val currentCount = conv.messages.size
+        if (autoSpeak && !isLoading && currentCount > lastMessageCount && lastMessageCount > 0) {
+            val lastMsg = conv.messages.lastOrNull()
+            if (lastMsg != null && lastMsg.role == ChatMessage.Role.ADVISOR && !lastMsg.isStreaming) {
+                audioService.speakVerse(lastMsg.content)
+            }
+        }
+        lastMessageCount = currentCount
+    }
+
+    // Speech recognition launcher
+    val speechLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val spoken = result.data
+                ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                ?.firstOrNull()
+            if (!spoken.isNullOrBlank()) {
+                inputText = spoken
+            }
+        }
+    }
+
+    // Permission launcher for RECORD_AUDIO
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale("en", "IN").toLanguageTag())
+                putExtra(RecognizerIntent.EXTRA_PROMPT, "Ask the Gita...")
+            }
+            speechLauncher.launch(intent)
+        }
+    }
+
+    fun startListening() {
+        permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Gita Advisor") },
                 actions = {
+                    // Auto-speak toggle
+                    val speakerTint by animateColorAsState(
+                        targetValue = if (autoSpeak) Saffron else MaterialTheme.colorScheme.onSurfaceVariant,
+                        label = "speakerTint"
+                    )
+                    IconButton(onClick = {
+                        autoSpeak = !autoSpeak
+                        if (!autoSpeak) audioService.stop()
+                    }) {
+                        Icon(
+                            if (autoSpeak) Icons.Filled.VolumeUp else Icons.Filled.VolumeOff,
+                            contentDescription = if (autoSpeak) "Auto-speak on" else "Auto-speak off",
+                            tint = speakerTint
+                        )
+                    }
                     IconButton(onClick = { conversationService.startNewConversation() }) {
                         Icon(Icons.Filled.Add, contentDescription = "New conversation", tint = Saffron)
                     }
@@ -49,9 +129,6 @@ fun AdvisorScreen(viewModel: GitaViewModel, navController: NavController) {
             )
         }
     ) { padding ->
-        val conversation by conversationService.currentConversation.collectAsState()
-        val isLoading by conversationService.isLoading.collectAsState()
-
         val currentConv = conversation
         if (currentConv == null) {
             // Welcome view
@@ -63,6 +140,10 @@ fun AdvisorScreen(viewModel: GitaViewModel, navController: NavController) {
                     scope.launch {
                         conversationService.sendMessage(scenario.prompt)
                     }
+                },
+                onStartVoice = {
+                    conversationService.startNewConversation()
+                    startListening()
                 }
             )
         } else {
@@ -84,7 +165,12 @@ fun AdvisorScreen(viewModel: GitaViewModel, navController: NavController) {
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(messages) { message ->
-                        MessageBubble(message = message, navController = navController)
+                        MessageBubble(
+                            message = message,
+                            navController = navController,
+                            onSpeak = { text -> audioService.speakVerse(text) },
+                            isPlaying = isPlaying
+                        )
                     }
                     if (isLoading) {
                         item { TypingIndicator() }
@@ -93,13 +179,24 @@ fun AdvisorScreen(viewModel: GitaViewModel, navController: NavController) {
 
                 Divider()
 
-                // Input bar
+                // Input bar with mic button
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Mic button
+                    IconButton(
+                        onClick = { startListening() }
+                    ) {
+                        Icon(
+                            Icons.Filled.Mic,
+                            contentDescription = "Speak",
+                            tint = Saffron
+                        )
+                    }
+
                     OutlinedTextField(
                         value = inputText,
                         onValueChange = { inputText = it },
@@ -109,7 +206,7 @@ fun AdvisorScreen(viewModel: GitaViewModel, navController: NavController) {
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Saffron, cursorColor = Saffron),
                         maxLines = 3
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
                     if (inputText.isNotBlank()) {
                         IconButton(
                             onClick = {
@@ -119,6 +216,11 @@ fun AdvisorScreen(viewModel: GitaViewModel, navController: NavController) {
                             }
                         ) {
                             Icon(Icons.Filled.Send, contentDescription = "Send", tint = Saffron)
+                        }
+                    } else if (isPlaying) {
+                        // Stop button when advisor is speaking
+                        IconButton(onClick = { audioService.stop() }) {
+                            Icon(Icons.Filled.StopCircle, contentDescription = "Stop speaking", tint = LotusRose)
                         }
                     }
                 }
@@ -131,7 +233,8 @@ fun AdvisorScreen(viewModel: GitaViewModel, navController: NavController) {
 private fun WelcomeView(
     modifier: Modifier = Modifier,
     onStartConversation: () -> Unit,
-    onSelectScenario: (ScenarioTemplate) -> Unit
+    onSelectScenario: (ScenarioTemplate) -> Unit,
+    onStartVoice: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -167,15 +270,34 @@ private fun WelcomeView(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Button(
-            onClick = onStartConversation,
-            colors = ButtonDefaults.buttonColors(containerColor = Saffron),
-            shape = RoundedCornerShape(24.dp),
-            contentPadding = PaddingValues(horizontal = 32.dp, vertical = 14.dp)
+        // Two buttons: Type or Speak
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(horizontal = 24.dp)
         ) {
-            Icon(Icons.Filled.Forum, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Start a Conversation")
+            Button(
+                onClick = onStartConversation,
+                colors = ButtonDefaults.buttonColors(containerColor = Saffron),
+                shape = RoundedCornerShape(24.dp),
+                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(Icons.Filled.Forum, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Type")
+            }
+
+            Button(
+                onClick = onStartVoice,
+                colors = ButtonDefaults.buttonColors(containerColor = DeepBlue),
+                shape = RoundedCornerShape(24.dp),
+                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(Icons.Filled.Mic, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Speak")
+            }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -226,7 +348,12 @@ private fun ScenarioChip(scenario: ScenarioTemplate, onClick: () -> Unit) {
 }
 
 @Composable
-private fun MessageBubble(message: ChatMessage, navController: NavController) {
+private fun MessageBubble(
+    message: ChatMessage,
+    navController: NavController,
+    onSpeak: (String) -> Unit,
+    isPlaying: Boolean
+) {
     val isUser = message.role == ChatMessage.Role.USER
 
     Row(
@@ -257,7 +384,21 @@ private fun MessageBubble(message: ChatMessage, navController: NavController) {
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 if (!isUser) {
-                    Text("Gita Advisor", style = MaterialTheme.typography.labelSmall, color = Saffron)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Gita Advisor", style = MaterialTheme.typography.labelSmall, color = Saffron)
+                        Spacer(modifier = Modifier.weight(1f))
+                        // Speaker icon to read this message aloud
+                        if (!message.isStreaming && message.content.isNotBlank()) {
+                            Icon(
+                                Icons.Filled.VolumeUp,
+                                contentDescription = "Listen to response",
+                                tint = Saffron.copy(alpha = 0.7f),
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .clickable { onSpeak(message.content) }
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
                 }
 
