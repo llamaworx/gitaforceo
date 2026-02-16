@@ -142,8 +142,9 @@ fun AdvisorScreen(viewModel: GitaViewModel, navController: NavController) {
                     }
                 },
                 onStartVoice = {
-                    conversationService.startNewConversation()
-                    startListening()
+                    navController.navigate(
+                        com.gitaforceo.app.ui.navigation.Screen.VoiceConversation.route
+                    )
                 }
             )
         } else {

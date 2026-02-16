@@ -8,6 +8,7 @@ import com.gitaforceo.app.model.*
 import com.gitaforceo.app.service.AudioService
 import com.gitaforceo.app.service.BookmarkService
 import com.gitaforceo.app.service.ConversationService
+import com.gitaforceo.app.service.VoiceService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,6 +19,7 @@ class GitaViewModel(application: Application) : AndroidViewModel(application) {
     val bookmarkService = BookmarkService(application)
     val audioService = AudioService(application)
     val conversationService = ConversationService(application)
+    val voiceService = VoiceService(application)
 
     private val _searchText = MutableStateFlow("")
     val searchText: StateFlow<String> = _searchText.asStateFlow()
@@ -95,6 +97,7 @@ class GitaViewModel(application: Application) : AndroidViewModel(application) {
     override fun onCleared() {
         super.onCleared()
         audioService.shutdown()
+        voiceService.shutdown()
     }
 }
 

@@ -34,6 +34,7 @@ sealed class Screen(val route: String) {
         fun createRoute(themeName: String) = "theme/$themeName"
     }
     data object DailyWisdom : Screen("daily_wisdom")
+    data object VoiceConversation : Screen("voice_conversation")
 }
 
 data class BottomNavItem(
@@ -121,6 +122,9 @@ fun GitaNavHost(viewModel: GitaViewModel) {
             }
             composable(Screen.DailyWisdom.route) {
                 DailyWisdomScreen(viewModel = viewModel, navController = navController)
+            }
+            composable(Screen.VoiceConversation.route) {
+                VoiceConversationScreen(viewModel = viewModel, navController = navController)
             }
             composable(
                 route = Screen.VerseDetail.route,

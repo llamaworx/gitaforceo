@@ -121,6 +121,89 @@ fun SettingsScreen(viewModel: GitaViewModel, navController: NavController) {
                 }
             }
 
+            // Voice Conversation (Google API)
+            SettingsSection("Voice Conversation") {
+                var googleApiKey by remember { mutableStateOf(viewModel.voiceService.getGoogleApiKey()) }
+                var showGoogleKeyField by remember { mutableStateOf(false) }
+
+                if (googleApiKey.isEmpty()) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Filled.Mic, contentDescription = null, tint = WarmAmber, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Google API Key for Voice", style = MaterialTheme.typography.titleSmall)
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "Add a Google Cloud API key to enable real voice conversation. Uses Google Speech-to-Text and WaveNet Text-to-Speech for natural Indian English voices.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TextButton(onClick = { showGoogleKeyField = true }) {
+                        Text("Add Google API Key", color = Saffron)
+                    }
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = ForestGreen, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Google Voice Configured", style = MaterialTheme.typography.titleSmall)
+                        Spacer(modifier = Modifier.weight(1f))
+                        TextButton(onClick = { showGoogleKeyField = true }) {
+                            Text("Change", color = Saffron, style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+
+                if (showGoogleKeyField) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = googleApiKey,
+                        onValueChange = {
+                            googleApiKey = it
+                            viewModel.voiceService.setGoogleApiKey(it)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("AIza...") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Saffron),
+                        singleLine = true
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "Requires Speech-to-Text and Text-to-Speech APIs enabled in Google Cloud Console. Key stored locally only.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Voice selection
+                Text("Advisor Voice", style = MaterialTheme.typography.bodySmall)
+                Spacer(modifier = Modifier.height(4.dp))
+                com.gitaforceo.app.service.VoiceService.VoiceOption.entries.forEach { voice ->
+                    val isSelected = viewModel.voiceService.selectedVoice == voice
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = isSelected,
+                            onClick = { viewModel.voiceService.setVoice(voice) },
+                            colors = RadioButtonDefaults.colors(selectedColor = Saffron)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Column {
+                            Text(voice.displayName, style = MaterialTheme.typography.bodySmall)
+                            Text(voice.description, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
+
             // About
             SettingsSection("About") {
                 SettingsRow("Source", "Bhagavad Gita (Shrimad Bhagavad Gita)")
